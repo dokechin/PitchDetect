@@ -484,7 +484,7 @@ function updatePitch( time ) {
 				maxNoteString = noteStrings[note%12];
 				maxNote = note;
 			}
-			pitchExtentElem.innerText = octer[minOcter] + minNoteString + " " + octer[maxOcter] + maxNoteString;
+			pitchExtentElem.innerHTML = octer[minOcter] + minNoteString + " " + octer[maxOcter] + maxNoteString;
 		}
 	}
 
