@@ -30,6 +30,8 @@ var sourceNode = null;
 var analyser = null;
 var theBuffer = null;
 var DEBUGCANVAS = null;
+var PIANOCANVAS1 = null;
+var PIANOCANVAS2 = null;
 var mediaStreamSource = null;
 var detectorElem, 
 	canvasElem,
@@ -37,7 +39,22 @@ var detectorElem,
 	pitchElem,
 	noteElem,
 	detuneElem,
-	detuneAmount;
+	detuneAmount,
+	pianoCanvas1,
+	pianoCanvas2,
+	pitchExtentElem,
+	minOcter,
+	maxOcter,
+	minNoteString,
+	maxNoteString;
+
+var	minNote = 121;
+var	maxNote = 33;
+
+var notePosition = [ 0, 0.5, 1, 2, 2.5, 3, 3.5, 4, 5, 5.5, 6, 6.5];
+var noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+var prevNote = null;
+var octer = ["low", "mid1", "mid2", "hi", "hihi", "hihihi", "hihihihi"];
 
 window.onload = function() {
 	audioContext = new AudioContext();
@@ -54,12 +71,45 @@ window.onload = function() {
 
 	detectorElem = document.getElementById( "detector" );
 	canvasElem = document.getElementById( "output" );
+	pitchExtentElem = document.getElementById( "pitch_extent" );
 	DEBUGCANVAS = document.getElementById( "waveform" );
+	PIANOCANVAS1 = document.getElementById( "piano1" );
+	PIANOCANVAS2 = document.getElementById( "piano2" );
 	if (DEBUGCANVAS) {
 		waveCanvas = DEBUGCANVAS.getContext("2d");
 		waveCanvas.strokeStyle = "black";
 		waveCanvas.lineWidth = 1;
 	}
+	if (PIANOCANVAS1 && PIANOCANVAS2) {
+		pianoCanvas1 = PIANOCANVAS1.getContext("2d");
+		pianoCanvas1.strokeStyle = "black";
+		pianoCanvas1.lineWidth = 1;
+		pianoCanvas1.beginPath();
+		pianoCanvas2 = PIANOCANVAS2.getContext("2d");
+		pianoCanvas2.strokeStyle = "black";
+		pianoCanvas2.lineWidth = 1;
+		pianoCanvas2.beginPath();
+
+		var start = 33;
+		for (var i=start ;i< start + 88;i++){
+			var noteString = noteStrings[i%12];
+			var position = (Math.floor((i - start) /12)) * 7 + noteString.charCodeAt(0) - 65;
+			if ( noteString.length == 2){
+				pianoCanvas2.beginPath();
+				pianoCanvas2.rect(position*18+9, 0, 14, 72);
+				pianoCanvas2.fillStyle = 'black';
+				pianoCanvas2.fill();
+			}
+			else{
+				pianoCanvas1.moveTo(position*18,     0);
+				pianoCanvas1.lineTo(position*18,   128);
+				pianoCanvas1.lineTo(position*18+18, 128);
+				pianoCanvas1.lineTo(position*18+18,   0);
+				pianoCanvas1.stroke();
+			}
+		}
+	}
+
 	pitchElem = document.getElementById( "pitch" );
 	noteElem = document.getElementById( "note" );
 	detuneElem = document.getElementById( "detune" );
@@ -203,8 +253,6 @@ var rafID = null;
 var tracks = null;
 var buflen = 1024;
 var buf = new Float32Array( buflen );
-
-var noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
 function noteFromPitch( frequency ) {
 	var noteNum = 12 * (Math.log( frequency / 440 )/Math.log(2) );
@@ -364,6 +412,79 @@ function updatePitch( time ) {
 			else
 				detuneElem.className = "sharp";
 			detuneAmount.innerHTML = Math.abs( detune );
+		}
+		if (PIANOCANVAS1 && PIANOCANVAS2 &&  note>=33 && note <=121) {  // This draws the outputed tones
+
+			if (prevNote != null){
+				var noteString = noteStrings[prevNote%12];
+				var position = (Math.floor((prevNote - 33) /12)) * 7 + noteString.charCodeAt(0) - 65;
+
+				if ( noteString.length == 2){
+					pianoCanvas2.beginPath();
+					pianoCanvas2.rect(position*18+9, 0, 14, 72);
+					pianoCanvas2.fillStyle = 'yellow';
+					pianoCanvas2.fill();
+					pianoCanvas2.strokeStyle = "black";
+					pianoCanvas2.moveTo(position*18+9,     0);
+					pianoCanvas2.lineTo(position*18+9,   72);
+					pianoCanvas2.lineTo(position*18+9+14,  72);
+					pianoCanvas2.lineTo(position*18+9+14,    0);
+					pianoCanvas2.stroke();
+				}
+				else{
+					pianoCanvas1.beginPath();
+					pianoCanvas1.rect(position*18, 0, 18, 128);
+					pianoCanvas1.fillStyle = 'yellow';
+					pianoCanvas1.fill();
+					pianoCanvas1.strokeStyle = "black";
+					pianoCanvas1.moveTo(position*18,     0);
+					pianoCanvas1.lineTo(position*18,   128);
+					pianoCanvas1.lineTo(position*18+18, 128);
+					pianoCanvas1.lineTo(position*18+18,   0);
+					pianoCanvas1.stroke();
+				}
+			}
+
+			var noteString = noteStrings[note%12];
+			var position = (Math.floor((note - 33) /12)) * 7 + noteString.charCodeAt(0) - 65;
+
+			if ( noteString.length == 2){
+				pianoCanvas2.beginPath();
+				pianoCanvas2.rect(position*18+9, 0, 14, 72);
+				pianoCanvas2.fillStyle = 'red';
+				pianoCanvas2.fill();
+				pianoCanvas2.strokeStyle = "black";
+				pianoCanvas2.moveTo(position*18+9,     0);
+				pianoCanvas2.lineTo(position*18+9,   72);
+				pianoCanvas2.lineTo(position*18+9+14,  72);
+				pianoCanvas2.lineTo(position*18+9+14,    0);
+				pianoCanvas2.stroke();
+			}
+			else{
+				pianoCanvas1.beginPath();
+				pianoCanvas1.rect(position*18, 0, 18, 128);
+				pianoCanvas1.fillStyle = 'red';
+				pianoCanvas1.fill();
+				pianoCanvas1.strokeStyle = "black";
+				pianoCanvas1.moveTo(position*18,     0);
+				pianoCanvas1.lineTo(position*18,   128);
+				pianoCanvas1.lineTo(position*18+18, 128);
+				pianoCanvas1.lineTo(position*18+18,   0);
+				pianoCanvas1.stroke();
+			}
+
+			prevNote = note;
+			if (minNote > note){
+				minOcter = Math.floor((note -33) /12);
+				minNoteString = noteStrings[note%12];
+				minNote = note;
+			}
+			if (maxNote < note){
+				maxOcter = Math.floor((note -33) /12);
+				maxNoteString = noteStrings[note%12];
+				maxNote = note;
+			}
+			pitchExtentElem.innerText = octer[minOcter] + minNoteString + " " + octer[maxOcter] + maxNoteString;
 		}
 	}
 

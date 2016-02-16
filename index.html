@@ -17,6 +17,13 @@
 			#sharp { display: none; }
 			.flat #flat { display: inline; }
 			.sharp #sharp { display: inline; }
+			#piano{ position: relative;}
+			#piano1{
+				position: absolute;
+			}
+			#piano2{
+				position: absolute;
+			}
 		</style>
 	</head>
 	<body>
@@ -36,9 +43,16 @@
 			<div id="detune"><span id="detune_amt">--</span><span id="flat">cents &#9837;</span><span id="sharp">cents &#9839;</span></div>
 		</div>
 
-		<!-- just used for debugging
-		<canvas id="waveform" width="512" height="256"></canvas>
-		-->
+		<!--canvas id="waveform" width="512" height="256"></canvas-->
+		<div id="display">
+			<div><span id="pitch_extent"></span></div>
+		</div>
+		<br />
+		<div id="piano">
+			<canvas id="piano1" width="1024" height="256"></canvas>
+			<canvas id="piano2" width="1024" height="256"></canvas>
+		</div>
+
 		<a href="https://github.com/cwilso/pitchdetect" style="position: absolute; z-index:2; top: 0; right: 0; border: 0;"><img src="img/forkme.png" alt="Fork me on GitHub"></a>
 
 		<script type="text/javascript">
